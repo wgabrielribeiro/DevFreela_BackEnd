@@ -1,8 +1,6 @@
-﻿using DevFreela.API.Models;
-using DevFreela.API.Services;
-using Microsoft.AspNetCore.Http;
+﻿using DevFreela.Application.Models;
+using DevFreela.Application.Services;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Options;
 
 namespace DevFreela.API.Controllers
 {
@@ -10,66 +8,94 @@ namespace DevFreela.API.Controllers
     [ApiController]
     public class ProjectsController : ControllerBase
     {
-        private readonly FreelancerTotalCostConfig _config;
-        private readonly IConfigService _configService;
-        public ProjectsController(IOptions<FreelancerTotalCostConfig> options, IConfigService configService)
+        private readonly IProjectService _projectService;
+
+        public ProjectsController(IProjectService projectService)
         {
-            _config = options.Value;
-            _configService = configService;            
+            _projectService = projectService;
         }
 
         [HttpGet]
-        public IActionResult Get(string search = "")
+        public IActionResult Get(string search = "", int page = 0, int size = 3)
         {
-            return Ok();
+            var result = _projectService.GetAll(search);
+
+            return Ok(result);
         }
 
         [HttpGet("{id}")]
         public IActionResult GetById(int id)
         {
-            throw new Exception();
-            return Ok();
+            var result = _projectService.GetById(id);
+
+            if(result.IsSuccess == false)
+                return BadRequest(result.Message);
+            
+
+            return Ok(result);
         }
 
         [HttpPost]
         public IActionResult Post([FromBody] CreateProjectInputModel model)
         {
-            if(model.TotalCost < _config.Minimum || model.TotalCost > _config.Maximum)
-            {
-                return BadRequest($"O custo total deve estar entre {_config.Minimum} e {_config.Maximum}");
-            }
+            var result = _projectService.Insert(model);
 
-            return CreatedAtAction(nameof(GetById), new { id = 1 }, model);
+            return CreatedAtAction(nameof(GetById), new { id = result.Data }, model);
         }
 
         [HttpPut("{id}")]
         public IActionResult Put(int id, [FromBody] UpdateProjectInputModel value)
         {
+            var result = _projectService.Update(value);
+
+            if (result.IsSuccess == false)
+                return BadRequest(result.Message);
+
             return NoContent();
         }
 
         [HttpDelete("{id}")]
         public IActionResult Delete(int id)
         {
+            var result = _projectService.Delete(id);
+
+            if (result.IsSuccess == false)
+                return BadRequest(result.Message);
+
             return NoContent();
         }
 
         [HttpPut("{id}/start")]
         public IActionResult Start(int id)
         {
+            var result = _projectService.Start(id);
+
+            if (result.IsSuccess == false)
+                return BadRequest(result.Message);
+
             return NoContent();
         }
 
         [HttpPut("{id}/complete")]
         public IActionResult Complete(int id)
         {
+            var result = _projectService.Complete(id);
+
+            if (result.IsSuccess == false)
+                return BadRequest(result.Message);
+
             return NoContent();
         }
 
         [HttpPost("{id}/comments")]
-        public IActionResult PostComment(int id, [FromBody] CreateProjectCommentInputModel comment)
+        public IActionResult PostComment(int id, [FromBody] CreateProjectCommentInputModel model)
         {
-            return CreatedAtAction(nameof(GetById), new { id = 1 }, comment);
+            var result = _projectService.InsertComment(id, model);
+
+            if (result.IsSuccess == false)
+                return BadRequest(result.Message);
+
+            return CreatedAtAction(nameof(GetById), new { id = result.Data }, model);
         }
 
     }
