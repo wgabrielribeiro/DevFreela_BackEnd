@@ -1,9 +1,6 @@
-﻿using DevFreela.API.Persistence;
-using DevFreela.Application.Models;
-using DevFreela.Core.Entities;
-using DevFreela.Infrastructure.Persistence;
+﻿using DevFreela.Application.Models;
+using DevFreela.Application.Services;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace DevFreela.API.Controllers
 {
@@ -11,71 +8,48 @@ namespace DevFreela.API.Controllers
     [ApiController]
     public class ProjectsController : ControllerBase
     {
-        private readonly DevFreelaDbContext _context;
-        public ProjectsController(DevFreelaDbContext context)
+        private readonly IProjectService _projectService;
+
+        public ProjectsController(IProjectService projectService)
         {
-            _context = context;
+            _projectService = projectService;
         }
 
         [HttpGet]
         public IActionResult Get(string search = "", int page = 0, int size = 3)
         {
-            var projects = _context.Projects
-                .Include(p => p.Client)
-                .Include(p => p.Freelancer)
-                .Where(p => !p.IsDeleted && (search == "" || p.Title.Contains(search) || p.Description.Contains(search)))
-                .Skip(page * size)
-                .Take(size)
-                .ToList();
+            var result = _projectService.GetAll(search);
 
-            var model = projects
-                .Select(ProjectItemViewModel.FromEntity)
-                .ToList();
-
-            return Ok(model);
+            return Ok(result);
         }
 
         [HttpGet("{id}")]
         public IActionResult GetById(int id)
         {
-            var project = _context.Projects
-                .Include(p => p.Client)
-                .Include(p => p.Freelancer)
-                .Include(p => p.Comments)
-                .SingleOrDefault(p => p.Id == id);
+            var result = _projectService.GetById(id);
 
-            var model = project is not null ? ProjectViewModel.FromEntity(project) : null;
+            if(result.IsSuccess == false)
+                return BadRequest(result.Message);
+            
 
-            return Ok(model);
+            return Ok(result);
         }
 
         [HttpPost]
         public IActionResult Post([FromBody] CreateProjectInputModel model)
         {
-            //if(model.TotalCost < _config.Minimum || model.TotalCost > _config.Maximum)
-            //{
-            //    return BadRequest($"O custo total deve estar entre {_config.Minimum} e {_config.Maximum}");
-            //}
+            var result = _projectService.Insert(model);
 
-            var project = model.ToEntity();
-
-            _context.Projects.Add(project);
-            _context.SaveChanges();
-
-            return CreatedAtAction(nameof(GetById), new { id = 1 }, model);
+            return CreatedAtAction(nameof(GetById), new { id = result.Data }, model);
         }
 
         [HttpPut("{id}")]
         public IActionResult Put(int id, [FromBody] UpdateProjectInputModel value)
         {
-            var project = _context.Projects.SingleOrDefault(p => p.Id == id);
+            var result = _projectService.Update(value);
 
-            if (project == null) return NotFound();
-
-            project.Update(value.Title, value.Description, value.TotalCost);
-
-            _context.Projects.Update(project);
-            _context.SaveChanges();
+            if (result.IsSuccess == false)
+                return BadRequest(result.Message);
 
             return NoContent();
         }
@@ -83,13 +57,10 @@ namespace DevFreela.API.Controllers
         [HttpDelete("{id}")]
         public IActionResult Delete(int id)
         {
-            var project = _context.Projects.SingleOrDefault(p => p.Id == id);
+            var result = _projectService.Delete(id);
 
-            if (project == null) return NotFound();
-
-            project.SetAsDeleted();
-            _context.Projects.Update(project);
-            _context.SaveChanges();
+            if (result.IsSuccess == false)
+                return BadRequest(result.Message);
 
             return NoContent();
         }
@@ -97,13 +68,10 @@ namespace DevFreela.API.Controllers
         [HttpPut("{id}/start")]
         public IActionResult Start(int id)
         {
-            var project = _context.Projects.SingleOrDefault(p => p.Id == id);
+            var result = _projectService.Start(id);
 
-            if (project == null) return NotFound();
-
-            project.Start();
-            _context.Projects.Update(project);
-            _context.SaveChanges();
+            if (result.IsSuccess == false)
+                return BadRequest(result.Message);
 
             return NoContent();
         }
@@ -111,13 +79,10 @@ namespace DevFreela.API.Controllers
         [HttpPut("{id}/complete")]
         public IActionResult Complete(int id)
         {
-            var project = _context.Projects.SingleOrDefault(p => p.Id == id);
+            var result = _projectService.Complete(id);
 
-            if (project == null) return NotFound();
-
-            project.Complete();
-            _context.Projects.Update(project);
-            _context.SaveChanges();
+            if (result.IsSuccess == false)
+                return BadRequest(result.Message);
 
             return NoContent();
         }
@@ -125,15 +90,12 @@ namespace DevFreela.API.Controllers
         [HttpPost("{id}/comments")]
         public IActionResult PostComment(int id, [FromBody] CreateProjectCommentInputModel model)
         {
-            var project = _context.Projects.SingleOrDefault(p => p.Id == id);
+            var result = _projectService.InsertComment(id, model);
 
-            if (project == null) return NotFound();
+            if (result.IsSuccess == false)
+                return BadRequest(result.Message);
 
-            var comment = new ProjectComment(model.Content, model.IdProject, model.IdUser);
-            _context.ProjectsComments.Add(comment);
-            _context.SaveChanges();
-
-            return CreatedAtAction(nameof(GetById), new { id = 1 }, comment);
+            return CreatedAtAction(nameof(GetById), new { id = result.Data }, model);
         }
 
     }

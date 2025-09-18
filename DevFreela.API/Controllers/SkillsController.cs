@@ -1,5 +1,4 @@
-﻿using DevFreela.API.Persistence;
-using DevFreela.Application.Models;
+﻿using DevFreela.Application.Models;
 using DevFreela.Core.Entities;
 using DevFreela.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Mvc;
