@@ -1,6 +1,8 @@
 ﻿using DevFreela.Application.Commands.InsertComment;
 using DevFreela.Application.Commands.InsertProject;
+using DevFreela.Application.Models;
 using DevFreela.Application.Services;
+using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace DevFreela.Application
@@ -26,6 +28,9 @@ namespace DevFreela.Application
         {
             services.AddMediatR(config => 
                 config.RegisterServicesFromAssemblyContaining<InsertProjectCommand>()); //ele vai buscar tudo que contém o command
+
+            //Adicionando o comportamento de validação do comando InsertProjectCommand
+            services.AddTransient<IPipelineBehavior<InsertProjectCommand, ResultViewModel<int>>, ValidateInsertProjectCommandBehavior>();
 
             return services;
         }
