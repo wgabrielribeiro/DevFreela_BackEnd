@@ -1,6 +1,6 @@
-﻿using DevFreela.Application.Commands.InsertComment;
-using DevFreela.Application.Commands.InsertProject;
-using DevFreela.Application.Services;
+﻿using DevFreela.Application.Commands.InsertProject;
+using DevFreela.Application.Models;
+using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace DevFreela.Application
@@ -17,7 +17,7 @@ namespace DevFreela.Application
 
         private static IServiceCollection AddServices(this IServiceCollection services)
         {
-            services.AddScoped<IProjectService, ProjectService>();
+            //services.AddScoped<IProjectRepository, ProjectRepository>();
 
             return services;
         }
@@ -26,6 +26,9 @@ namespace DevFreela.Application
         {
             services.AddMediatR(config => 
                 config.RegisterServicesFromAssemblyContaining<InsertProjectCommand>()); //ele vai buscar tudo que contém o command
+
+            //Adicionando o comportamento de validação do comando InsertProjectCommand
+            services.AddTransient<IPipelineBehavior<InsertProjectCommand, ResultViewModel<int>>, ValidateInsertProjectCommandBehavior>();
 
             return services;
         }
