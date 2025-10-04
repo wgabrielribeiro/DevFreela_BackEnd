@@ -9,7 +9,7 @@ public class ApiExceptionHandler : IExceptionHandler
     {
         var details = new ProblemDetails
         {
-            Title = "An error occurred while processing your request",
+            Title = "An error occurred while processing your request", 
             Status = StatusCodes.Status500InternalServerError,
             Detail = exception.Message,
             Instance = httpContext.Request.Path
