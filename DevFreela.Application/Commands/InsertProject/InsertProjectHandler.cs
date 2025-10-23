@@ -14,15 +14,22 @@ public class InsertProjectHandler : IRequestHandler<InsertProjectCommand, Result
         _repository = repository;
         _mediator = mediator;
     }
+    public InsertProjectHandler(IProjectRepository repository)
+    {
+        _repository = repository;
+    }
     public async Task<ResultViewModel<int>> Handle(InsertProjectCommand request, CancellationToken cancellationToken)
     {
         var project = request.ToEntity();
 
         var projectId = await _repository.Add(project);
 
-        var projectCreated = new ProjectCreatedNotification(project.Id, project.Title, project.IdFreelancer);
-        await _mediator.Publish(projectCreated, cancellationToken);
+        if(_mediator is not null)
+        {
+            var projectCreated = new ProjectCreatedNotification(project.Id, project.Title, project.IdFreelancer);
+            await _mediator.Publish(projectCreated, cancellationToken);
+        }
 
-        return ResultViewModel<int>.Success(project.Id);
+        return ResultViewModel<int>.Success(projectId);
     }
 }
