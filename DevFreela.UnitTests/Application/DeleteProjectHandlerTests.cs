@@ -1,17 +1,21 @@
 ﻿using DevFreela.Application.Commands.DeleteProject;
 using DevFreela.Core.Entities;
 using DevFreela.Core.Repositories;
+using DevFreela.UnitTests.Fakes;
+using FluentAssertions;
 using Moq;
 using NSubstitute;
 
 namespace DevFreela.UnitTests.Application;
+
 public class DeleteProjectHandlerTests
 {
     [Fact]
     public async Task ProjectExists_Delete_Success_NSubstitute()
     {
         // Arrange
-        var project = new Project("Test Title", "Test Description", 1, 2, 1000);
+        //var project = new Project("Test Title", "Test Description", 1, 2, 1000);
+        var project = FakeDataHelper.CreateFakeProject();
 
         var repositoy = Substitute.For<IProjectRepository>();
         repositoy.GetById(Arg.Any<int>()).Returns(Task.FromResult((Project?)project));
@@ -19,7 +23,7 @@ public class DeleteProjectHandlerTests
 
         var handler = new DeleteProjectHandler(repositoy);
 
-        var command = new DeleteProjectCommand(1);  
+        var command = new DeleteProjectCommand(1);
 
         // Act
         var result = await handler.Handle(command, new CancellationToken());
@@ -58,7 +62,9 @@ public class DeleteProjectHandlerTests
     public async Task ProjectExists_Delete_Success_Moq()
     {
         // Arrange
-        var project = new Project("Test Title", "Test Description", 1, 2, 1000);
+        //var project = new Project("Test Title", "Test Description", 1, 2, 1000);
+
+        var project = FakeDataHelper.CreateFakeProject();
 
         var repositoy = Mock.Of<IProjectRepository>(p => p.GetById(It.IsAny<int>()) == Task.FromResult(project) &&
         p.Update(It.IsAny<Project>()) == Task.CompletedTask);
@@ -73,6 +79,9 @@ public class DeleteProjectHandlerTests
 
         // Assert
         Assert.True(result.IsSuccess);
+
+        //com fluent assertions, olhe como melhora a legibilidade
+        result.IsSuccess.Should().BeTrue();
 
         Mock.Get(repositoy).Verify(r => r.GetById(1), Times.Once);
         Mock.Get(repositoy).Verify(r => r.Update(It.IsAny<Project>()), Times.Once);
@@ -94,7 +103,14 @@ public class DeleteProjectHandlerTests
 
         // Assert
         Assert.False(result.IsSuccess);
+
+        //com fluent assertions, olhe como melhora a legibilidade
+        result.IsSuccess.Should().BeFalse();
+
         Assert.Equal(DeleteProjectHandler.PROJECT_NOT_FOUND_MESSAGE, result.Message);
+
+        //com fluent assertions, olhe como melhora a legibilidade
+        result.Message.Should().Be(DeleteProjectHandler.PROJECT_NOT_FOUND_MESSAGE);
 
         Mock.Get(repositoy).Verify(r => r.GetById(1), Times.Once);
         Mock.Get(repositoy).Verify(r => r.Update(It.IsAny<Project>()), Times.Never);

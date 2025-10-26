@@ -1,6 +1,8 @@
 ﻿using DevFreela.Application.Commands.InsertProject;
 using DevFreela.Core.Entities;
 using DevFreela.Core.Repositories;
+using DevFreela.UnitTests.Fakes;
+using FluentAssertions;
 using Moq;
 using NSubstitute;
 using System;
@@ -22,14 +24,16 @@ public class InsertProjectHandlerTests
         var repository = Substitute.For<IProjectRepository>();
         repository.Add(Arg.Any<Project>()).Returns(Task.FromResult(ID));
 
-        var command = new InsertProjectCommand
-        {
-            Title = "Title Test",
-            Description = "Description Test",
-            IdCliente = 1,
-            IdFreelancer = 2,
-            TotalCost = 1000
-        };
+        //var command = new InsertProjectCommand
+        //{
+        //    Title = "Title Test",
+        //    Description = "Description Test",
+        //    IdCliente = 1,
+        //    IdFreelancer = 2,
+        //    TotalCost = 1000
+        //};
+
+        var command = FakeDataHelper.CreateFakeInsertProjectCommand();
 
         var handler = new InsertProjectHandler(repository);
 
@@ -38,7 +42,13 @@ public class InsertProjectHandlerTests
 
         //Assert
         Assert.True(result.IsSuccess);
+        //com fluent assertions, olhe como melhora a legibilidade
+        result.IsSuccess.Should().BeTrue();
+
         Assert.Equal(ID, result.Data);
+        //com fluent assertions, olhe como melhora a legibilidade
+        result.Data.Should().Be(ID);
+
         await repository.Received(1).Add(Arg.Any<Project>());
     }
 
@@ -60,14 +70,16 @@ public class InsertProjectHandlerTests
             r.Add(It.IsAny<Project>()) == Task.FromResult(ID)
         );
 
-        var command = new InsertProjectCommand
-        {
-            Title = "Title Test",
-            Description = "Description Test",
-            IdCliente = 1,
-            IdFreelancer = 2,
-            TotalCost = 1000
-        };
+        //var command = new InsertProjectCommand
+        //{
+        //    Title = "Title Test",
+        //    Description = "Description Test",
+        //    IdCliente = 1,
+        //    IdFreelancer = 2,
+        //    TotalCost = 1000
+        //};
+
+        var command = FakeDataHelper.CreateFakeInsertProjectCommand();
 
         var handler = new InsertProjectHandler(repository);
 
