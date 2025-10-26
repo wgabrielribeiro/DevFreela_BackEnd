@@ -41,7 +41,7 @@ public class Project : BaseEntity
     {
         if (Status != ProjectStatusEnum.Created)
         {
-            throw new ArgumentException(INVALID_STATE_MESSAGE);
+            throw new InvalidOperationException(INVALID_STATE_MESSAGE);
         }
 
         Status = ProjectStatusEnum.InProgress;
