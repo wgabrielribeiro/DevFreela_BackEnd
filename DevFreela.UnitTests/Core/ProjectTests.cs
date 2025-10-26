@@ -48,7 +48,7 @@ public class ProjectTests
 
         // Act & Assert
         Action? start = project.Start;
-        var exception = Assert.Throws<InvalidOperationException>(start);
+        var exception = Assert.Throws<ArgumentException>(start);
 
         Assert.Equal(Project.INVALID_STATE_MESSAGE, exception.Message);
     }
