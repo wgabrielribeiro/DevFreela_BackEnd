@@ -7,5 +7,6 @@ public interface IUserRepository
     Task<List<UserSkill>> GetListUsersById(int id, int[] listIds);
     Task Post(User user);
     Task PostSkills(List<UserSkill> userSkills);
+    Task<User> LoginByEmail(string email, string password);
 
 }

@@ -25,7 +25,6 @@ public class UserRepository : IUserRepository
 
         return Task.FromResult(users);
     }
-
     public async Task Post(User user)
     {
         _context.Users.Add(user);
@@ -37,4 +36,9 @@ public class UserRepository : IUserRepository
         _context.UserSkills.AddRange(userSkills);
         await _context.SaveChangesAsync();
     }
+    public async Task<User> LoginByEmail(string email, string password)
+    {
+        return await _context.Users.SingleOrDefaultAsync(u => u.Email == email && u.Password == password && !u.IsDeleted);
+    }
+
 }
